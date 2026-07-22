@@ -2,7 +2,7 @@
   "name": "todo",
   "short_name": "todo",
   "description": "console-style task manager",
-  "start_url": "/",
+  "start_url": "/mytodo/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f0f0f",
