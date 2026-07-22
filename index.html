@@ -9,6 +9,15 @@
 <meta name="apple-mobile-web-app-title" content="todo">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+  // apply saved theme before first paint to avoid a flash
+  (function () {
+    try {
+      if (localStorage.getItem('todo_theme') === 'light')
+        document.documentElement.dataset.theme = 'light';
+    } catch (e) {}
+  })();
+</script>
 <title>todo</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
@@ -34,7 +43,30 @@
   --danger-dim: #2a1a1a;
   --danger-faint: #c8404066;
   --warn: #c8a040;
+  --heading: #f0f0f0;
   --font: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+:root[data-theme="light"] {
+  --bg: #ececec;
+  --surface: #ffffff;
+  --surface2: #ffffff;
+  --surface3: #f6f6f6;
+  --border: #e4e4e4;
+  --border2: #d4d4d4;
+  --border3: #dedede;
+  --text: #1c1c1c;
+  --text-dim: #555;
+  --text-muted: #8a8a8a;
+  --text-faint: #bcbcbc;
+  --accent: #00997a;
+  --accent-dim: #d6f2ea;
+  --accent-faint: #00997a44;
+  --danger: #c03434;
+  --danger-dim: #f7dede;
+  --danger-faint: #c0343466;
+  --warn: #b3860f;
+  --heading: #141414;
 }
 
 html, body {
@@ -63,10 +95,20 @@ header {
 }
 .header-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
 .prompt { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
-header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -0.5px; }
+header h1 { font-size: 22px; font-weight: 700; color: var(--heading); letter-spacing: -0.5px; }
 .header-meta { font-size: 11px; color: var(--text-faint); letter-spacing: 0.5px; }
 .header-meta .cnt { color: var(--text-muted); }
 .header-meta .err { color: var(--danger); }
+.theme-btn {
+  margin-left: auto; align-self: center;
+  background: none;
+  border: 1px solid var(--border2); border-radius: 6px;
+  padding: 4px 8px;
+  font-family: var(--font); font-size: 10px; font-weight: 600;
+  letter-spacing: 1px; color: var(--text-muted); cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.theme-btn:active { border-color: var(--accent); color: var(--accent); }
 
 /* ── TABS ── */
 .tabs {
@@ -124,7 +166,7 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
   background: var(--surface2);
   transition: border-color 0.15s;
 }
-.task-card.expanded { border-color: #252525; }
+.task-card.expanded { border-color: var(--border2); }
 
 .task-row {
   display: flex; align-items: center; gap: 10px;
@@ -167,7 +209,7 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
 .icon-btn.del:active { background: var(--danger-dim); }
 
 .chevron {
-  font-size: 9px; color: #333;
+  font-size: 9px; color: var(--text-faint);
   transition: transform 0.2s, color 0.2s;
   margin-left: 2px; flex-shrink: 0;
   user-select: none;
@@ -188,14 +230,14 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
 .subtask-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 0;
-  border-bottom: 1px solid #151515;
+  border-bottom: 1px solid var(--border);
   cursor: pointer; user-select: none;
 }
 .subtask-row:last-child { border-bottom: none; }
-.sub-num { font-size: 10px; color: #222; min-width: 20px; text-align: right; flex-shrink: 0; }
+.sub-num { font-size: 10px; color: var(--text-faint); min-width: 20px; text-align: right; flex-shrink: 0; }
 .sub-box {
   width: 15px; height: 15px;
-  border: 1px solid #333; border-radius: 3px;
+  border: 1px solid var(--border2); border-radius: 3px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, border-color 0.15s;
@@ -225,14 +267,14 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
 .archived-row {
   display: flex; align-items: center; gap: 10px;
   padding: 11px 14px;
-  border: 1px solid #161616; border-radius: 8px;
+  border: 1px solid var(--border); border-radius: 8px;
   margin-bottom: 7px; background: var(--surface3);
 }
-.arch-num { font-size: 10px; color: #222; min-width: 20px; text-align: right; }
+.arch-num { font-size: 10px; color: var(--text-faint); min-width: 20px; text-align: right; }
 .arch-dot { width: 6px; height: 6px; border-radius: 50%; background: #1e3a30; flex-shrink: 0; }
 .arch-name { flex: 1; font-size: 12px; color: var(--text-faint); text-decoration: line-through; }
-.arch-date { font-size: 10px; color: #222; }
-.arch-del { background: none; border: none; color: #2a2a2a; font-size: 12px; cursor: pointer; padding: 0 2px; font-family: var(--font); }
+.arch-date { font-size: 10px; color: var(--text-faint); }
+.arch-del { background: none; border: none; color: var(--text-faint); font-size: 12px; cursor: pointer; padding: 0 2px; font-family: var(--font); }
 .arch-del:active { color: var(--danger); }
 
 /* ── MODAL ── */
@@ -247,7 +289,7 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
 .modal-backdrop.open { opacity: 1; pointer-events: all; }
 
 .modal-sheet {
-  background: #111;
+  background: var(--surface2);
   border-top: 1px solid var(--border2);
   border-radius: 20px 20px 0 0;
   padding: 18px 18px calc(env(safe-area-inset-bottom, 20px) + 18px);
@@ -264,7 +306,7 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
 .modal-title { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 18px; }
 .modal-title::before { content: '// '; color: var(--accent); }
 
-.field-label { font-size: 10px; font-weight: 600; color: #333; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+.field-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
 .field-input {
   width: 100%;
   background: var(--surface3);
@@ -432,6 +474,7 @@ header h1 { font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -
     <div class="header-top">
       <span class="prompt">~/tasks $</span>
       <h1>todo</h1>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="toggle theme">// dark</button>
     </div>
     <div class="header-meta" id="header-meta"></div>
   </header>
@@ -895,8 +938,24 @@ function switchTab(tab) {
   render();
 }
 
+// ── THEME ──
+function applyTheme(theme) {
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t === 'light' ? '#ffffff' : '#0f0f0f');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = t === 'light' ? '// light' : '// dark';
+}
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  localStorage.setItem('todo_theme', next);
+  applyTheme(next);
+}
+
 // ── INIT ──
 load();
+applyTheme(localStorage.getItem('todo_theme') || 'dark');
 render();
 
 // service worker
